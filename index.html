@@ -66,6 +66,7 @@
   </div>
   <button onclick="updateText()">Update Preview</button>
   <button onclick="download()">Download as Image</button>
+  <button onclick="downloadPDF()">Download as PDF</button>
 
   <div id="preview">
     <div id="text"></div>
@@ -78,6 +79,7 @@ Chandigarh Roller Skating Association</div>
   </div>
 
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
     function updateText() {
       const textDiv = document.getElementById('text');
@@ -151,6 +153,18 @@ Chandigarh Roller Skating Association</div>
       const formattedDate = dd + '/' + mm + '/' + yyyy;
       document.getElementById('date').innerText = formattedDate;
     };
+
+    function downloadPDF() {
+      const element = document.getElementById('preview');
+      const opt = {
+        margin:       0.5,
+        filename:     'letter.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
+    }
   </script>
 </body>
 </html>
