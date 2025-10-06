@@ -26,7 +26,6 @@
     }
     #signature {
       position: absolute;
-
       left: 180px;
       width: 280px;
     }
@@ -54,7 +53,14 @@
       font-size: 13px;
       text-align: left;
       white-space: pre-wrap;
-
+    }
+    .ios-instructions {
+      background-color: #fff3cd;
+      border: 1px solid #ffeaa7;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      display: none;
     }
   </style>
 </head>
@@ -67,6 +73,10 @@
   <button onclick="updateText()">Update Preview</button>
   <button onclick="download()">Download as Image</button>
   <button onclick="downloadPDF()">Download as PDF</button>
+  
+  <div id="iosInstructions" class="ios-instructions">
+    <strong>iOS Users:</strong> If PDF opens in Safari instead of downloading, tap the <strong>Share button</strong> and select <strong>"Save to Files"</strong> or <strong>"Save PDF to Books"</strong> to save it to your device.
+  </div>
 
   <div id="preview">
     <div id="text"></div>
@@ -74,13 +84,25 @@
     <div id="additionalText">Maninderjit Singh Sidhu
 President 
 Chandigarh Roller Skating Association</div>
-<div id="date"></div>
-<div id="Number"></div>
+    <div id="date"></div>
+    <div id="Number"></div>
   </div>
 
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
   <script>
+    // Detect iOS device
+    function isIOS() {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
+    // Show iOS instructions if on iOS device
+    if (isIOS()) {
+      document.getElementById('iosInstructions').style.display = 'block';
+    }
+
     function updateText() {
       const textDiv = document.getElementById('text');
       const signatureImg = document.getElementById('signature');
@@ -100,11 +122,10 @@ Chandigarh Roller Skating Association</div>
       textDiv.style.fontSize = fontSize + 'px';
 
       // Reduce font size if text overflows max height
-      while (textDiv.scrollHeight > 600 && fontSize>13) {
+      while (textDiv.scrollHeight > 600 && fontSize > 13) {
         fontSize -= 1;
         textDiv.style.fontSize = fontSize + 'px';
         additionalTextDiv.style.fontSize = fontSize + 'px';
-
       }
 
       // Calculate the bottom position of the text relative to preview
@@ -115,7 +136,7 @@ Chandigarh Roller Skating Association</div>
       let signatureTop = textRect.bottom - previewRect.top + 10;
 
       // Ensure signature stays within preview height
-      const maxSignatureTop = previewDiv.clientHeight - signatureImg.clientHeight - 70; // leave space for additionalText
+      const maxSignatureTop = previewDiv.clientHeight - signatureImg.clientHeight - 70;
       if (signatureTop > maxSignatureTop) {
         signatureTop = maxSignatureTop;
       }
@@ -148,22 +169,63 @@ Chandigarh Roller Skating Association</div>
     window.onload = function() {
       const today = new Date();
       const dd = String(today.getDate()).padStart(2, '0');
-      const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
       const yyyy = today.getFullYear();
       const formattedDate = dd + '/' + mm + '/' + yyyy;
       document.getElementById('date').innerText = formattedDate;
     };
 
     function downloadPDF() {
-      const element = document.getElementById('preview');
-      const opt = {
-        margin: 0,
-        filename: 'letter.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'px', format: [680, 1000], orientation: 'portrait' }
-      };
-      html2pdf().set(opt).from(element).save();
+      html2canvas(document.getElementById('preview'), {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
+      }).then(canvas => {
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
+          unit: 'px',
+          format: [imgWidth, imgHeight]
+        });
+        
+        pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+        
+        if (isIOS()) {
+          // For iOS: Open PDF in new tab with special handling
+          const pdfBlob = pdf.output('blob');
+          const pdfUrl = URL.createObjectURL(pdfBlob);
+          
+          // Try to force download with special filename
+          const link = document.createElement('a');
+          link.href = pdfUrl;
+          link.download = 'letter.pdf';
+          link.target = '_blank';
+          
+          // Add iOS-specific attributes
+          link.setAttribute('rel', 'noopener');
+          
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Show user instructions for iOS
+          setTimeout(() => {
+            alert('iOS Note: If the PDF opens in Safari, tap the Share button (box with arrow) and select "Save to Files" or "Save PDF to Books" to download it to your device.');
+          }, 500);
+          
+        } else {
+          // For other devices: Standard download
+          pdf.save('letter.pdf');
+        }
+        
+      }).catch(error => {
+        console.error('Error generating PDF:', error);
+        alert('Error generating PDF. Please try again.');
+      });
     }
   </script>
 </body>
