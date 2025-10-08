@@ -66,9 +66,13 @@
 </head>
 <body>
   <h2>CRSA Letter Generator</h2>
-  <div style="display:flex; justify-content:space-around; margin-bottom:10px;">
+  <div style="display:flex; justify-content:space-around; margin-bottom:10px; align-items: center;">
     <textarea id="input" rows="6" cols="60" placeholder="Paste text here..."></textarea>
     <textarea id="numberInput" rows="2" cols="30" placeholder="Enter number here..."></textarea>
+    <div id="roleSelection" style="display:flex; flex-direction: column; justify-content: center; margin-left: 20px; text-align: left;">
+      <label><input type="radio" name="role" value="President" checked> President</label>
+      <label><input type="radio" name="role" value="General Secretary"> General Secretary</label>
+    </div>
   </div>
   <button onclick="updateText()">Update Preview</button>
   <button onclick="download()">Download as Image</button>
@@ -106,55 +110,73 @@ Chandigarh Roller Skating Association</div>
     function updateText() {
       const textDiv = document.getElementById('text');
       const signatureImg = document.getElementById('signature');
-      const additionalTextDiv = document.getElementById('additionalText');
-      const previewDiv = document.getElementById('preview');
+    const additionalTextDiv = document.getElementById('additionalText');
+    const previewDiv = document.getElementById('preview');
 
-      // Update the text content
-      textDiv.innerText = document.getElementById('input').value;
+    // Update the text content
+    textDiv.innerText = document.getElementById('input').value;
 
-      // Update the number content
-      const numberDiv = document.getElementById('Number');
-      numberDiv.innerText = document.getElementById('numberInput').value;
+    // Update the number content
+    const numberDiv = document.getElementById('Number');
+    numberDiv.innerText = document.getElementById('numberInput').value;
 
-      // Reset font size to default before measuring
-      const defaultFontSize = 16;
-      let fontSize = defaultFontSize;
+    // Update the additionalText role based on selected radio button
+    const roleRadios = document.getElementsByName('role');
+    let selectedRole = 'President';
+    for (const radio of roleRadios) {
+      if (radio.checked) {
+        selectedRole = radio.value;
+        break;
+      }
+    }
+    if (selectedRole === 'President') {
+      additionalTextDiv.style.display = 'block';
+      additionalTextDiv.innerHTML = `Maninderjit Singh Sidhu<br>President<br>Chandigarh Roller Skating Association`;
+      signatureImg.src = 'sign.png';
+    } else if (selectedRole === 'General Secretary') {
+      additionalTextDiv.style.display = 'none';
+      signatureImg.src = 'sign2.png';
+    }
+
+    // Reset font size to default before measuring
+    const defaultFontSize = 16;
+    let fontSize = defaultFontSize;
+    textDiv.style.fontSize = fontSize + 'px';
+
+    // Reduce font size if text overflows max height
+    while (textDiv.scrollHeight > 600 && fontSize > 13) {
+      fontSize -= 1;
       textDiv.style.fontSize = fontSize + 'px';
+      additionalTextDiv.style.fontSize = fontSize + 'px';
+    }
 
-      // Reduce font size if text overflows max height
-      while (textDiv.scrollHeight > 600 && fontSize > 13) {
-        fontSize -= 1;
-        textDiv.style.fontSize = fontSize + 'px';
-        additionalTextDiv.style.fontSize = fontSize + 'px';
-      }
+    // Calculate the bottom position of the text relative to preview
+    const textRect = textDiv.getBoundingClientRect();
+    const previewRect = previewDiv.getBoundingClientRect();
 
-      // Calculate the bottom position of the text relative to preview
-      const textRect = textDiv.getBoundingClientRect();
-      const previewRect = previewDiv.getBoundingClientRect();
+    // Calculate top position for signature: 20px below text bottom, relative to preview top
+    let signatureTop = textRect.bottom - previewRect.top + 10;
 
-      // Calculate top position for signature: 20px below text bottom, relative to preview top
-      let signatureTop = textRect.bottom - previewRect.top + 10;
+    // Ensure signature stays within preview height
+    const maxSignatureTop = previewDiv.clientHeight - signatureImg.clientHeight - 70;
+    if (signatureTop > maxSignatureTop) {
+      signatureTop = maxSignatureTop;
+    }
 
-      // Ensure signature stays within preview height
-      const maxSignatureTop = previewDiv.clientHeight - signatureImg.clientHeight - 70;
-      if (signatureTop > maxSignatureTop) {
-        signatureTop = maxSignatureTop;
-      }
+    // Set the top position of the signature image
+    signatureImg.style.top = signatureTop + 'px';
 
-      // Set the top position of the signature image
-      signatureImg.style.top = signatureTop + 'px';
+    // Calculate top position for additionalText: 50px below signature bottom
+    let additionalTextTop = signatureTop + signatureImg.clientHeight;
 
-      // Calculate top position for additionalText: 50px below signature bottom
-      let additionalTextTop = signatureTop + signatureImg.clientHeight;
+    // Ensure additionalText stays within preview height
+    const maxAdditionalTextTop = previewDiv.clientHeight - additionalTextDiv.clientHeight;
+    if (additionalTextTop > maxAdditionalTextTop) {
+      additionalTextTop = maxAdditionalTextTop;
+    }
 
-      // Ensure additionalText stays within preview height
-      const maxAdditionalTextTop = previewDiv.clientHeight - additionalTextDiv.clientHeight;
-      if (additionalTextTop > maxAdditionalTextTop) {
-        additionalTextTop = maxAdditionalTextTop;
-      }
-
-      // Set the top position of the additional text box
-      additionalTextDiv.style.top = additionalTextTop + 'px';
+    // Set the top position of the additional text box
+    additionalTextDiv.style.top = additionalTextTop + 'px';
     }
 
     function download() {
