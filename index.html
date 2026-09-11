@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Letter Generator</title>
+  <style>
+    :root {
+      --page-width: 680px;
+      --page-height: 1020px; /* matches updated.png's 1024x1536 (2:3) ratio */
+      --content-left: 180px;
+      --content-right-margin: 40px;
+    }
+
+    body { font-family: "Times New Roman", Times, Georgia, serif; text-align: center; margin: 20px; }
+
+    #controls {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    #roleSelection {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: left;
+    }
+
+    .ios-instructions {
+      background-color: #fff3cd;
+      border: 1px solid #ffeaa7;
+      padding: 10px;
+      margin: 10px auto;
+      border-radius: 5px;
+      max-width: var(--page-width);
+      display: none;
+    }
+
+    .page {
+      position: relative;
+      width: var(--page-width);
+      height: var(--page-height);
+      background-image: url(updated.png);
+      background-size: contain;
+      background-repeat: no-repeat;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+    }
+
+    .page.active { border: 3px solid #007BFF; }
+
+    /* Shared styling for the two overlay text blocks (body text + signature block) */
+    .page-text,
+    .page-additional {
+      position: absolute;
+      left: var(--content-left);
+      width: calc(var(--page-width) - var(--content-left) - var(--content-right-margin));
+      font-size: 16px;
+      text-align: left;
+      white-space: pre-wrap;
+      transition: font-size 0.3s ease;
+    }
+
+    .page-text {
+      top: 200px;
+      height: fit-content;
+      max-height: 620px;
+    }
+
+    .page-signature {
+      position: absolute;
+      left: var(--content-left);
+      width: 280px;
+    }
+
+    /* Positioned to sit on the "Dated ____" blank in the letterhead */
+    .page-date {
+      position: absolute;
+      top: 160px;
+      left: 377px;
+      width: 70px;
+      font-size: 13px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* Positioned to sit on the "CRSA No. ____" blank in the letterhead */
+    .page-number {
+      position: absolute;
+      top: 160px;
+      left: 272px;
+      width: 70px;
+      font-size: 13px;
+      text-align: center;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <h2>CRSA Letter Generator</h2>
+
+  <div id="controls">
+    <textarea id="input" rows="6" cols="60" placeholder="Paste text here..."></textarea>
+    <textarea id="numberInput" rows="2" cols="30" placeholder="Enter number here..."></textarea>
+    <div id="roleSelection">
+      <label><input type="radio" name="role" value="President" checked> President</label>
+      <label><input type="radio" name="role" value="General Secretary"> General Secretary</label>
+      <label style="margin-top: 10px;">
+        <input type="checkbox" id="includeSignature" checked>
+        Include Signature
+      </label>
+    </div>
+  </div>
+
+  <button onclick="updateText()">Update Preview</button>
+  <button onclick="downloadImage()">Download as Image</button>
+  <button onclick="downloadPDF()">Download as PDF</button>
+  <button onclick="addPage()">Add Another Page</button>
+
+  <label for="pageSelect">Select Page:</label>
+  <select id="pageSelect" onchange="setActivePage(this.value)">
+    <option value="1" selected>Page 1</option>
+  </select>
+
+  <div id="iosInstructions" class="ios-instructions">
+    <strong>iOS Users:</strong> If PDF opens in Safari instead of downloading, tap the <strong>Share button</strong> and select <strong>"Save to Files"</strong> or <strong>"Save PDF to Books"</strong> to save it to your device.
+  </div>
+
+  <div id="pagesContainer">
+    <div class="page active" data-page="1">
+      <div class="page-text"></div>
+      <img class="page-signature" src="sign.png">
+      <div class="page-additional">Maninderjit Singh Sidhu<br>President<br>Chandigarh Roller Skating Association</div>
+      <div class="page-date"></div>
+      <div class="page-number"></div>
+    </div>
+  </div>
+
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    const SIGNATURE_TEXT = {
+      "President": "Maninderjit Singh Sidhu<br>President<br>Chandigarh Roller Skating Association",
+    };
+
+    // Per-page state, kept in sync with the shared input controls.
+    // pagesData[i] describes the page at index i.
+    let pagesData = [ makePageData() ];
+    let currentPageIndex = 0;
+
+    function makePageData() {
+      return { text: '', number: '', role: 'President', includeSignature: true, date: '' };
+    }
+
+    function isIOS() {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
+    function todayFormatted() {
+      const today = new Date();
+      const dd = String(today.getDate()).padStart(2, '0');
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const yyyy = today.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    }
+
+    function getPageElements() {
+      return document.querySelectorAll('.page');
+    }
+
+    function getActivePageEl() {
+      return getPageElements()[currentPageIndex];
+    }
+
+    // Pull the current values out of the shared controls into the active page's data.
+    function saveControlsToActiveData() {
+      const data = pagesData[currentPageIndex];
+      data.text = document.getElementById('input').value;
+      data.number = document.getElementById('numberInput').value;
+      data.includeSignature = document.getElementById('includeSignature').checked;
+      const roleRadios = document.getElementsByName('role');
+      for (const radio of roleRadios) {
+        if (radio.checked) data.role = radio.value;
+      }
+    }
+
+    // Push a page's stored data back into the shared controls (used when switching pages).
+    function loadControlsFromActiveData() {
+      const data = pagesData[currentPageIndex];
+      document.getElementById('input').value = data.text;
+      document.getElementById('numberInput').value = data.number;
+      document.getElementById('includeSignature').checked = data.includeSignature;
+      const roleRadios = document.getElementsByName('role');
+      for (const radio of roleRadios) {
+        radio.checked = (radio.value === data.role);
+      }
+    }
+
+    // Render one page's data into its DOM element.
+    function renderPage(pageIndex) {
+      const pageEl = getPageElements()[pageIndex];
+      const data = pagesData[pageIndex];
+      if (!pageEl || !data) return;
+
+      const textDiv = pageEl.querySelector('.page-text');
+      const signatureImg = pageEl.querySelector('.page-signature');
+      const additionalTextDiv = pageEl.querySelector('.page-additional');
+      const numberDiv = pageEl.querySelector('.page-number');
+      const dateDiv = pageEl.querySelector('.page-date');
+
+      textDiv.innerText = data.text;
+      numberDiv.innerText = data.number;
+
+      if (!data.date) data.date = todayFormatted();
+      dateDiv.innerText = data.date;
+
+      if (data.includeSignature) {
+        signatureImg.style.display = 'block';
+        if (data.role === 'President') {
+          additionalTextDiv.style.display = 'block';
+          additionalTextDiv.innerHTML = SIGNATURE_TEXT.President;
+          signatureImg.src = 'sign.png';
+        } else {
+          additionalTextDiv.style.display = 'none';
+          signatureImg.src = 'sign2.png';
+        }
+      } else {
+        signatureImg.style.display = 'none';
+        additionalTextDiv.style.display = 'none';
+      }
+
+      // Shrink font size until the text block fits within its max height.
+      let fontSize = 16;
+      textDiv.style.fontSize = fontSize + 'px';
+      while (textDiv.scrollHeight > 620 && fontSize > 12) {
+        fontSize -= 1;
+        textDiv.style.fontSize = fontSize + 'px';
+        additionalTextDiv.style.fontSize = fontSize + 'px';
+      }
+      signatureImg.style.width = (fontSize === 12 ? '224px' : '280px');
+
+      // Position the signature block right below the body text.
+      const textRect = textDiv.getBoundingClientRect();
+      const pageRect = pageEl.getBoundingClientRect();
+      let signatureTop = textRect.bottom - pageRect.top + 10;
+      const maxSignatureTop = pageEl.clientHeight - signatureImg.clientHeight - 70;
+      if (signatureTop > maxSignatureTop) signatureTop = maxSignatureTop;
+      signatureImg.style.top = signatureTop + 'px';
+
+      let additionalTextTop = signatureTop + signatureImg.clientHeight;
+      const maxAdditionalTextTop = pageEl.clientHeight - additionalTextDiv.clientHeight;
+      if (additionalTextTop > maxAdditionalTextTop) additionalTextTop = maxAdditionalTextTop;
+      additionalTextDiv.style.top = additionalTextTop + 'px';
+    }
+
+    // Called on every keystroke / control change.
+    function updateText() {
+      saveControlsToActiveData();
+      renderPage(currentPageIndex);
+    }
+
+    function addPage() {
+      const pagesContainer = document.getElementById('pagesContainer');
+      const templatePage = getPageElements()[0];
+      const newPage = templatePage.cloneNode(true);
+      newPage.classList.remove('active');
+
+      const newIndex = pagesData.length;
+      newPage.dataset.page = newIndex + 1;
+      pagesContainer.appendChild(newPage);
+
+      pagesData.push(makePageData());
+
+      const pageSelect = document.getElementById('pageSelect');
+      const option = document.createElement('option');
+      option.value = newIndex + 1;
+      option.text = 'Page ' + (newIndex + 1);
+      pageSelect.appendChild(option);
+      pageSelect.value = newIndex + 1;
+
+      setActivePage(newIndex + 1);
+      alert(`Page ${newIndex + 1} added!`);
+    }
+
+    function setActivePage(indexOneBased) {
+      saveControlsToActiveData(); // keep the page we're leaving up to date
+      renderPage(currentPageIndex);
+
+      currentPageIndex = parseInt(indexOneBased, 10) - 1;
+
+      getPageElements().forEach((page, i) => {
+        page.classList.toggle('active', i === currentPageIndex);
+      });
+
+      loadControlsFromActiveData();
+      renderPage(currentPageIndex);
+    }
+
+    function downloadImage() {
+      updateText();
+      html2canvas(getActivePageEl()).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'letter.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+
+    function downloadPDF() {
+      updateText(); // make sure the active page reflects the latest edits
+      const pages = getPageElements();
+      const { jsPDF } = window.jspdf;
+      let pdf;
+
+      function finish() {
+        if (isIOS()) {
+          const pdfBlob = pdf.output('blob');
+          const pdfUrl = URL.createObjectURL(pdfBlob);
+          const link = document.createElement('a');
+          link.href = pdfUrl;
+          link.download = 'letter.pdf';
+          link.target = '_blank';
+          link.rel = 'noopener';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(() => {
+            alert('iOS Note: If the PDF opens in Safari, tap the Share button (box with arrow) and select "Save to Files" or "Save PDF to Books" to download it to your device.');
+          }, 500);
+        } else {
+          pdf.save('letter.pdf');
+        }
+      }
+
+      function processPage(i) {
+        if (i >= pages.length) { finish(); return; }
+
+        html2canvas(pages[i], { scale: 2, useCORS: true, allowTaint: true }).then(canvas => {
+          const imgData = canvas.toDataURL('image/jpeg', 1.0);
+          const imgWidth = canvas.width;
+          const imgHeight = canvas.height;
+
+          if (i === 0) {
+            pdf = new jsPDF({
+              orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
+              unit: 'px',
+              format: [imgWidth, imgHeight]
+            });
+          } else {
+            pdf.addPage([imgWidth, imgHeight]);
+          }
+
+          pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+          processPage(i + 1);
+        }).catch(error => {
+          console.error('Error generating page PDF:', error);
+          alert('Error generating PDF. Please try again.');
+        });
+      }
+
+      processPage(0);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      if (isIOS()) {
+        document.getElementById('iosInstructions').style.display = 'block';
+      }
+
+      pagesData[0].date = todayFormatted();
+      renderPage(0);
+
+      const textArea = document.getElementById("input");
+      const numberInput = document.getElementById("numberInput");
+      const includeSignature = document.getElementById("includeSignature");
+      const roleRadios = document.getElementsByName("role");
+
+      textArea.addEventListener("input", updateText);
+      numberInput.addEventListener("input", updateText);
+      includeSignature.addEventListener("change", updateText);
+      roleRadios.forEach(radio => radio.addEventListener("change", updateText));
+    });
+  </script>
+</body>
+</html>
