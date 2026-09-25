@@ -22,7 +22,12 @@ export default function LetterDetails({ letter, onChange }) {
         </label>
         <label className="field">
           <span className="field-label">Date</span>
-          <input type="date" value={date} onChange={(e) => onChange({ date: e.target.value || null })} />
+          <input
+            type="date"
+            value={date}
+            // Picking today (or clearing the field) keeps the date automatic, so it moves on each day.
+            onChange={(e) => onChange({ date: e.target.value && e.target.value !== todayISO() ? e.target.value : null })}
+          />
         </label>
       </div>
       {isCustomDate && (
