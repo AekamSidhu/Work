@@ -1,0 +1,95 @@
+/* The letter itself, at full size. Positions match the original index.html. */
+
+.letter-page {
+  position: relative;
+  width: 680px;
+  height: 1020px;
+  overflow: hidden;
+  background: #fff url('/letterhead.png') no-repeat 0 0 / 100% 100%;
+  color: #000;
+  font-family: var(--letter-font);
+  text-align: left;
+}
+
+.lp-text {
+  position: absolute;
+  left: 180px;
+  top: 200px;
+  width: 460px;
+  max-height: 620px;
+  font-size: 16px;
+  line-height: normal;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.lp-text p {
+  margin: 0;
+}
+
+/* An empty line in the editor is an empty paragraph - keep its height. */
+.lp-text p:empty::after {
+  content: '\00a0';
+}
+
+.lp-text ul,
+.lp-text ol {
+  margin: 0;
+  padding-left: 1.5em;
+}
+
+.lp-sign {
+  position: absolute;
+  left: 180px;
+  display: block;
+  max-width: none;
+}
+
+.lp-sign-text {
+  position: absolute;
+  left: 180px;
+  width: 460px;
+  font-size: 16px;
+  line-height: normal;
+}
+
+.lp-number,
+.lp-date {
+  position: absolute;
+  top: 160px;
+  width: 70px;
+  font-size: 13px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.lp-number {
+  left: 272px;
+}
+
+.lp-date {
+  left: 377px;
+}
+
+/* Scaled-down preview wrapper */
+.scaled-page {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.scaled-page-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+/* Full-size copies used to make the PDF / image. Covered by the "working" overlay. */
+.export-stage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 680px;
+  pointer-events: none;
+}
