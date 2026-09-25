@@ -27,22 +27,16 @@ and saves them as a PDF or image. A React rebuild of the original single-file
 
 Letter layout (positions, the 16px → 12px shrink-to-fit, signatures) is the same as the original.
 
-## Deploying on Vercel (free plan)
+## Deploying (Netlify, free plan)
 
-Vercel settings are already in `vercel.json` (Vite build, output folder `dist`).
+The live site is https://calm-toffee-f4da9b.netlify.app, built from the `main`
+branch of https://github.com/AekamSidhu/Work.
 
-**Option A: replace the old site (same web address)**
+Build settings are in `netlify.toml` (`npm run build`, publish folder `dist`).
+They override whatever is set in the Netlify dashboard, so nothing needs
+changing there. Every commit to `main` rebuilds the site in about a minute.
 
-1. Delete the old files in the `Work` GitHub repository (`index.html`, images).
-2. Upload everything from this folder into the repository root **except**
-   `node_modules` and `dist` if they exist.
-3. Commit. Vercel builds and deploys automatically in about a minute.
-   (If the project's *Framework Preset* in Vercel was "Other", `vercel.json` overrides it, so nothing needs changing.)
-
-**Option B: new repository**
-
-1. Create a new GitHub repository and upload this folder's contents.
-2. In Vercel: *Add New → Project → Import* that repository → *Deploy*.
+When uploading changes by hand, never upload `node_modules` or `dist`.
 
 ## Running it on a computer (optional)
 
