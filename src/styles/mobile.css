@@ -55,40 +55,15 @@
   color: var(--brand);
 }
 
-.m-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  margin: 14px 16px;
-  padding: 4px;
-  border-radius: 14px;
-  background: #e3e5ed;
-}
-
-.m-tabs button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 44px;
-  border: 0;
-  border-radius: 11px;
-  background: transparent;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--muted);
-}
-
-.m-tabs button[aria-selected='true'] {
-  background: #fff;
-  color: var(--brand-ink);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-}
-
 .m-main {
   display: grid;
   gap: 14px;
-  padding: 0 16px;
+  padding: 16px 16px 0;
+}
+
+/* Grid children may shrink below their content, so nothing widens the screen. */
+.m-main > * {
+  min-width: 0;
 }
 
 .m-main .editor-box .rich-editor {
@@ -109,20 +84,61 @@
   color: var(--muted);
 }
 
-.m-hint {
+.m-hint-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-top: -6px;
   padding: 0 4px;
+}
+
+.m-hint {
   font-size: 14px;
   color: var(--muted);
 }
 
 .m-hint-center {
-  margin-top: 0;
   text-align: center;
 }
 
-.preview-item {
+.m-jump {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.m-preview {
   display: grid;
+  gap: 14px;
+  padding-top: 6px;
+  scroll-margin-top: 12px;
+}
+
+.m-preview-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.m-preview-head h2 {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.m-preview-head span {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
 }
 
 /* PDF / Image buttons fixed at the bottom; they slide away while typing. */

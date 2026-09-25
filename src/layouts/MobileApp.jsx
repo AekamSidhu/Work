@@ -1,98 +1,29 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { EditorContent } from '@tiptap/react';
 import Toolbar from '../editor/Toolbar.jsx';
 import { useLetterEditor } from '../editor/useLetterEditor.js';
 import KeyboardDock from '../components/KeyboardDock.jsx';
-import PageTabs from '../components/PageTabs.jsx';
 import LetterDetails from '../components/LetterDetails.jsx';
 import Icon from '../components/Icon.jsx';
-import LetterPage from '../letter/LetterPage.jsx';
-import ScaledPage from '../letter/ScaledPage.jsx';
+import LetterPreview from '../letter/LetterPreview.jsx';
 import { confirmNewLetter, useKeyboardOpen, useLingering } from '../hooks/hooks.js';
 
-function WriteTab({ letter }) {
-  const { activePage, updatePage } = letter;
+// Phone layout: one scrolling screen - write, details, then a live preview.
+export default function MobileApp({ letter, update, reset, layout, onExport, onSwitchView }) {
   const [focused, setFocused] = useState(false);
   const docked = useLingering(focused, 250);
+  const keyboardOpen = useKeyboardOpen();
+  const previewRef = useRef(null);
+  const pageCount = layout.pages.length;
 
   const editor = useLetterEditor({
-    page: activePage,
-    onChange: (html) => updatePage(activePage.id, { html }),
+    letter,
+    onChange: (html) => update({ html }),
     onFocusChange: setFocused,
     bottomSpace: 110,
   });
 
-  return (
-    <main className="m-main">
-      <PageTabs letter={letter} />
-
-      <section className="card editor-card" aria-label="Letter text">
-        <div className="tb-slot">
-          {docked ? (
-            <p className="tb-slot-note">Styling tools are above the keyboard</p>
-          ) : (
-            <Toolbar editor={editor} variant="mobile" popoverSide="below" />
-          )}
-        </div>
-        <EditorContent editor={editor} className="editor-box" />
-      </section>
-      <p className="m-hint">Select any words, then tap B, U, size or color to style them.</p>
-
-      <section className="card">
-        <h2 className="card-title">Details</h2>
-        <LetterDetails page={activePage} onChange={(patch) => updatePage(activePage.id, patch)} />
-      </section>
-
-      {docked && (
-        <KeyboardDock>
-          <Toolbar editor={editor} variant="mobile" popoverSide="above" onDone={() => editor.commands.blur()} />
-        </KeyboardDock>
-      )}
-    </main>
-  );
-}
-
-function PreviewTab({ letter, onEdit }) {
-  const { pages } = letter;
-  const [overflowing, setOverflowing] = useState({});
-  const onFit = (id, over) => setOverflowing((o) => (o[id] === over ? o : { ...o, [id]: over }));
-
-  return (
-    <main className="m-main">
-      {pages.map((page, i) => (
-        <section key={page.id} className="preview-item">
-          <div className="preview-label">
-            <span>
-              Page {i + 1} of {pages.length}
-            </span>
-            <button type="button" className="link-button" onClick={() => onEdit(page.id)}>
-              <Icon name="pen" size={15} /> Edit
-            </button>
-          </div>
-          {overflowing[page.id] && (
-            <p className="warning">Too much text for one page. Move some of it to a new page.</p>
-          )}
-          <div className="paper">
-            <ScaledPage>
-              <LetterPage page={page} onFit={onFit} />
-            </ScaledPage>
-          </div>
-        </section>
-      ))}
-      <p className="m-hint m-hint-center">Pinch with two fingers to zoom in.</p>
-    </main>
-  );
-}
-
-export default function MobileApp({ letter, onExport, onSwitchView }) {
-  const [tab, setTab] = useState('write');
-  const keyboardOpen = useKeyboardOpen();
-
-  const editPage = (id) => {
-    letter.setActive(id);
-    setTab('write');
-    window.scrollTo(0, 0);
-  };
+  const showPreview = () => previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   return (
     <div className="m-app">
@@ -102,21 +33,44 @@ export default function MobileApp({ letter, onExport, onSwitchView }) {
           <h1>CRSA Letters</h1>
           <p>Chandigarh Roller Skating Association</p>
         </div>
-        <button type="button" className="m-new" onClick={() => confirmNewLetter(letter.reset)}>
+        <button type="button" className="m-new" onClick={() => confirmNewLetter(reset)}>
           <Icon name="refresh" size={16} /> New
         </button>
       </header>
 
-      <div className="m-tabs" role="tablist">
-        <button type="button" role="tab" aria-selected={tab === 'write'} onClick={() => setTab('write')}>
-          <Icon name="pen" size={17} /> Write
-        </button>
-        <button type="button" role="tab" aria-selected={tab === 'preview'} onClick={() => setTab('preview')}>
-          <Icon name="eye" size={17} /> Preview
-        </button>
-      </div>
+      <main className="m-main">
+        <section className="card editor-card" aria-label="Letter text">
+          <div className="tb-slot">
+            {docked ? (
+              <p className="tb-slot-note">Styling tools are above the keyboard</p>
+            ) : (
+              <Toolbar editor={editor} variant="mobile" popoverSide="below" />
+            )}
+          </div>
+          <EditorContent editor={editor} className="editor-box" />
+        </section>
 
-      {tab === 'write' ? <WriteTab letter={letter} /> : <PreviewTab letter={letter} onEdit={editPage} />}
+        <div className="m-hint-row">
+          <p className="m-hint">Select words, then tap B, U, size or color.</p>
+          <button type="button" className="m-jump" onClick={showPreview}>
+            Preview{pageCount > 1 ? ` · ${pageCount} pages` : ''} <Icon name="arrowDown" size={16} />
+          </button>
+        </div>
+
+        <section className="card">
+          <h2 className="card-title">Details</h2>
+          <LetterDetails letter={letter} onChange={update} />
+        </section>
+
+        <section className="m-preview" ref={previewRef} aria-label="Live preview">
+          <div className="m-preview-head">
+            <h2>Live preview</h2>
+            <span>{pageCount === 1 ? '1 page' : `${pageCount} pages`}</span>
+          </div>
+          <LetterPreview letter={letter} layout={layout} />
+          <p className="m-hint m-hint-center">Pinch with two fingers to zoom in.</p>
+        </section>
+      </main>
 
       <footer className="app-foot">
         <p>Your letter is saved automatically on this phone.</p>
@@ -133,6 +87,12 @@ export default function MobileApp({ letter, onExport, onSwitchView }) {
           <Icon name="image" /> Image
         </button>
       </div>
+
+      {docked && (
+        <KeyboardDock>
+          <Toolbar editor={editor} variant="mobile" popoverSide="above" onDone={() => editor.commands.blur()} />
+        </KeyboardDock>
+      )}
     </div>
   );
 }

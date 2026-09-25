@@ -16,7 +16,6 @@
   left: 180px;
   top: 200px;
   width: 460px;
-  max-height: 620px;
   font-size: 16px;
   line-height: normal;
   white-space: pre-wrap;
@@ -36,6 +35,11 @@
 .lp-text ol {
   margin: 0;
   padding-left: 1.5em;
+}
+
+/* A list item that carries on from the previous page doesn't repeat its number. */
+.lp-text li[data-continued] {
+  list-style: none;
 }
 
 .lp-sign {
@@ -91,5 +95,14 @@
   top: 0;
   left: 0;
   width: 680px;
+  pointer-events: none;
+}
+
+/* Hidden copy used to measure how much text fits on a page. */
+.letter-measure {
+  position: fixed;
+  top: 0;
+  left: -10000px;
+  visibility: hidden;
   pointer-events: none;
 }

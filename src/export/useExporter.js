@@ -8,24 +8,21 @@ let jobCounter = 0;
 //   mode 'sheet' (phone): a sheet opens with a Share / Save button. iPhones only
 //   allow the share menu to open from a fresh tap, so it can't open by itself
 //   after the file has been made.
-export function useExporter(pages, mode) {
+export function useExporter(letter, layout, mode) {
   const [job, setJob] = useState(null);
   const stageRef = useRef(null);
-  const pagesRef = useRef(pages);
-  const modeRef = useRef(mode);
-  const jobRef = useRef(job);
-  pagesRef.current = pages;
-  modeRef.current = mode;
-  jobRef.current = job;
+  const current = useRef({ letter, layout, mode, job });
+  current.current = { letter, layout, mode, job };
 
   const start = useCallback((kind) => {
-    if (jobRef.current?.status === 'working') return;
+    const { letter: l, layout: lay, job: j } = current.current;
+    if (j?.status === 'working') return;
     jobCounter += 1;
-    setJob({ id: jobCounter, kind, status: 'working', pages: pagesRef.current });
+    setJob({ id: jobCounter, kind, status: 'working', letter: l, layout: lay });
   }, []);
 
   const close = useCallback(() => {
-    jobRef.current?.urls?.forEach((url) => URL.revokeObjectURL(url));
+    current.current.job?.urls?.forEach((url) => URL.revokeObjectURL(url));
     setJob(null);
   }, []);
 
@@ -33,10 +30,10 @@ export function useExporter(pages, mode) {
     if (job?.status !== 'working') return undefined;
     let cancelled = false;
 
-    createLetterFiles(stageRef.current, job.kind, job.pages)
+    createLetterFiles(stageRef.current, job.kind, job.letter)
       .then(async (files) => {
         if (cancelled) return;
-        if (modeRef.current === 'download') {
+        if (current.current.mode === 'download') {
           await downloadFiles(files);
           if (!cancelled) setJob(null);
           return;

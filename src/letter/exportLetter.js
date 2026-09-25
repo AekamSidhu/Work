@@ -7,10 +7,10 @@ const IMAGE_SCALE = 3;
 const PDF_WIDTH_MM = 210;
 const PDF_HEIGHT_MM = (PDF_WIDTH_MM * PAGE_HEIGHT) / PAGE_WIDTH;
 
-export function fileBaseName(page) {
-  const number = (page.number || '').trim().replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '');
+export function fileBaseName(letter) {
+  const number = (letter.number || '').trim().replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '');
   if (number) return `CRSA-Letter-${number}`;
-  return `CRSA-Letter-${formatDate(pageDate(page)).replace(/\//g, '-')}`;
+  return `CRSA-Letter-${formatDate(pageDate(letter)).replace(/\//g, '-')}`;
 }
 
 function loadImage(src) {
@@ -57,11 +57,11 @@ function release(canvas) {
 }
 
 // Turns the rendered pages inside `stage` into files: one PDF, or one JPEG per page.
-export async function createLetterFiles(stage, kind, pages) {
+export async function createLetterFiles(stage, kind, letter) {
   const { default: html2canvas } = await import('html2canvas');
   await waitForAssets(stage);
   const pageEls = [...stage.querySelectorAll('.letter-page')];
-  const base = fileBaseName(pages[0]);
+  const base = fileBaseName(letter);
 
   if (kind === 'pdf') {
     const { jsPDF } = await import('jspdf');

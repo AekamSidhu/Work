@@ -5,6 +5,7 @@ import ExportStage from './export/ExportStage.jsx';
 import ExportSheet from './export/ExportSheet.jsx';
 import { useExporter } from './export/useExporter.js';
 import { useLetter } from './state/useLetter.js';
+import { useLetterLayout } from './letter/useLetterLayout.js';
 import { useMediaQuery } from './hooks/hooks.js';
 
 // Phones (and phones turned sideways) get the phone layout; everything else the PC layout.
@@ -24,8 +25,9 @@ export default function App() {
   const [savedView, setSavedView] = useState(readSavedView); // 'phone' | 'pc' | null (automatic)
   const isPhone = savedView ? savedView === 'phone' : autoPhone;
 
-  const letter = useLetter();
-  const exporter = useExporter(letter.pages, isPhone ? 'sheet' : 'download');
+  const { letter, update, reset } = useLetter();
+  const layout = useLetterLayout(letter);
+  const exporter = useExporter(letter, layout, isPhone ? 'sheet' : 'download');
 
   const switchView = () => {
     const next = isPhone ? 'pc' : 'phone';
@@ -42,12 +44,20 @@ export default function App() {
   };
 
   const Layout = isPhone ? MobileApp : DesktopApp;
+  const { job } = exporter;
 
   return (
     <>
-      <Layout letter={letter} onExport={exporter.start} onSwitchView={switchView} />
-      {exporter.job?.status === 'working' && <ExportStage stageRef={exporter.stageRef} pages={exporter.job.pages} />}
-      <ExportSheet job={exporter.job} onClose={exporter.close} />
+      <Layout
+        letter={letter}
+        update={update}
+        reset={reset}
+        layout={layout}
+        onExport={exporter.start}
+        onSwitchView={switchView}
+      />
+      {job?.status === 'working' && <ExportStage stageRef={exporter.stageRef} letter={job.letter} layout={job.layout} />}
+      <ExportSheet job={job} onClose={exporter.close} />
     </>
   );
 }

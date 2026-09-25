@@ -25,11 +25,11 @@ function ToolButton({ label, pressed, expanded, disabled, onClick, className = '
   );
 }
 
-// variant "mobile": compact, big tap targets, optional Done button.
-// variant "desktop": adds Redo, a size label and a custom color picker.
-// popoverSide: where the size / color panels open ("below" or "above" the bar).
+// variant "mobile": compact, big tap targets, a "more" menu, optional Done button.
+// variant "desktop": every action visible, a size label and a custom color picker.
+// popoverSide: where the panels open ("below" or "above" the bar).
 export default function Toolbar({ editor, variant = 'mobile', popoverSide = 'below', onDone }) {
-  const [open, setOpen] = useState(null); // 'size' | 'color' | null
+  const [open, setOpen] = useState(null); // 'size' | 'color' | 'more' | null
   const rootRef = useRef(null);
   const customColorRef = useRef(null);
   const desktop = variant === 'desktop';
@@ -84,6 +84,8 @@ export default function Toolbar({ editor, variant = 'mobile', popoverSide = 'bel
   const hint = state.empty && (
     <p className="tb-pop-hint">Select some text first — or pick now and keep typing.</p>
   );
+  const clearFormatting = () => apply((c) => c.unsetAllMarks());
+  const newPage = () => apply((c) => c.setPageBreak());
 
   return (
     <div className={`toolbar toolbar-${variant}`} ref={rootRef}>
@@ -124,15 +126,34 @@ export default function Toolbar({ editor, variant = 'mobile', popoverSide = 'bel
 
         <span className="tb-sep" aria-hidden="true" />
 
-        <ToolButton label="Remove formatting" onClick={() => apply((c) => c.unsetAllMarks())}>
-          <Icon name="eraser" />
-        </ToolButton>
+        {desktop && (
+          <>
+            <ToolButton label="Remove styling" onClick={clearFormatting}>
+              <Icon name="eraser" />
+            </ToolButton>
+            <ToolButton label="Start a new page here" onClick={newPage} className="tb-wide">
+              <Icon name="newPage" />
+              <span className="tb-caption">New page</span>
+            </ToolButton>
+            <span className="tb-sep" aria-hidden="true" />
+          </>
+        )}
+
         <ToolButton label="Undo" disabled={!state.canUndo} onClick={() => apply((c) => c.undo())}>
           <Icon name="undo" />
         </ToolButton>
-        {desktop && (
+        {desktop ? (
           <ToolButton label="Redo" disabled={!state.canRedo} onClick={() => apply((c) => c.redo())}>
             <Icon name="redo" />
+          </ToolButton>
+        ) : (
+          <ToolButton
+            label="More"
+            expanded={open === 'more'}
+            className={`tb-menu ${open === 'more' ? 'is-open' : ''}`}
+            onClick={() => toggle('more')}
+          >
+            <Icon name="more" />
           </ToolButton>
         )}
 
@@ -188,6 +209,31 @@ export default function Toolbar({ editor, variant = 'mobile', popoverSide = 'bel
                 <input ref={customColorRef} type="color" defaultValue={state.color || '#1b2a9c'} aria-label="Choose any color" />
               </label>
             )}
+          </div>
+        </div>
+      )}
+
+      {open === 'more' && (
+        <div className={`tb-pop tb-pop-${popoverSide}`}>
+          <div className="tb-list">
+            <button type="button" onMouseDown={keepFocus} onClick={newPage}>
+              <Icon name="newPage" />
+              <span>
+                Start a new page here
+                <small>Text after the cursor moves to the next page</small>
+              </span>
+            </button>
+            <button type="button" onMouseDown={keepFocus} onClick={clearFormatting}>
+              <Icon name="eraser" />
+              <span>
+                Remove styling
+                <small>Makes the selected text plain again</small>
+              </span>
+            </button>
+            <button type="button" onMouseDown={keepFocus} disabled={!state.canRedo} onClick={() => apply((c) => c.redo())}>
+              <Icon name="redo" />
+              <span>Redo</span>
+            </button>
           </div>
         </div>
       )}

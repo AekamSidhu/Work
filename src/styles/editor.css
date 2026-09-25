@@ -14,7 +14,7 @@
   line-height: 1.45;
   color: #000;
   white-space: pre-wrap;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
   caret-color: var(--brand);
 }
 
@@ -26,6 +26,34 @@
 .rich-editor ol {
   margin: 0;
   padding-left: 1.4em;
+}
+
+/* "Start a new page here" divider */
+.rich-editor .page-break {
+  position: relative;
+  margin: 14px 0;
+  border-top: 2px dashed #b9bfd6;
+  cursor: default;
+}
+
+.rich-editor .page-break::after {
+  content: 'New page';
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 10px;
+  background: #fff;
+  color: var(--muted);
+  font-family: var(--ui-font);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rich-editor .page-break.ProseMirror-selectednode {
+  border-top-color: var(--brand);
 }
 
 .rich-editor p.is-editor-empty:first-child::before {
@@ -288,6 +316,46 @@
   height: 100%;
   opacity: 0;
   cursor: pointer;
+}
+
+.tb-list {
+  display: grid;
+  gap: 4px;
+}
+
+.tb-list button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  color: var(--ink);
+}
+
+.tb-list button:active {
+  background: var(--brand-soft);
+}
+
+.tb-list button:disabled {
+  opacity: 0.35;
+}
+
+.tb-list svg {
+  flex: none;
+  color: var(--brand);
+}
+
+.tb-list small {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
 }
 
 @keyframes pop-in {

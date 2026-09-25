@@ -9,23 +9,27 @@ and saves them as a PDF or image. A React rebuild of the original single-file
 - **Style any words**: select text, then tap **B** (bold), *I* (italic),
   U (underline), **size** (Small → Huge) or **color** (8 preset colors; any color on PC).
 - **Two layouts, picked automatically**
-  - **Phone**: Write / Preview tabs, big buttons, and a formatting bar that sits
-    just above the keyboard (like the Notes app). PDF and Image buttons are always
-    at the bottom. After making a file, **Share or Save** opens the iPhone share
-    menu (WhatsApp, Save to Files, Mail, Print…).
+  - **Phone**: one scrolling screen: the letter text, then the details, then a
+    **live preview** of every page that updates as you type. Big buttons, and a
+    formatting bar that sits just above the keyboard (like the Notes app). PDF and
+    Image buttons are always at the bottom. After making a file, **Share or Save**
+    opens the iPhone share menu (WhatsApp, Save to Files, Mail, Print…).
   - **PC**: editor on the left, live preview of every page on the right,
     one-click downloads and keyboard shortcuts (Ctrl/⌘ + B, I, U, Z).
   - A "Switch to PC view / phone view" link at the bottom overrides the automatic choice.
+- **Pages are automatic**: text first shrinks from 16px to 12px to fit one page.
+  If it still doesn't fit, it carries on to new pages (splitting paragraphs
+  between lines), using the largest text size that needs no extra pages.
+- **Signature never covers text**: it gets its own reserved space at the end of
+  the **last page only**, for both the President and General Secretary signatures.
+- **Start a new page here** (⋯ menu on phones, "New page" on PC) forces a page break.
 - **Auto-save**: the letter is kept on the device, so closing Safari or
   reloading doesn't lose it. **New** starts a fresh letter.
-- Pages can be **deleted** as well as added; a new page copies the CRSA No., date
-  and signature of the page before it.
 - The **date** can be changed (it defaults to today, like before).
-- A warning appears if a page has more text than fits.
 - Can be **added to the iPhone home screen** (Safari → Share → Add to Home Screen)
   and then opens full-screen with the CRSA logo as its icon.
 
-Letter layout (positions, the 16px → 12px shrink-to-fit, signatures) is the same as the original.
+Text and signature positions on the letterhead match the original.
 
 ## Deploying (Netlify, free plan)
 
@@ -55,7 +59,8 @@ npm run build    # production build into dist/
 | Letterhead image | `public/letterhead.png` (keep the 2:3 shape) |
 | Signature images | `public/sign-president.png`, `public/sign-general-secretary.png` |
 | Names under the signature, signers | `src/letter/constants.js` → `ROLES` |
-| Text positions on the letterhead | `src/letter/constants.js` and `src/styles/letter.css` |
+| Text positions and page margins | `src/letter/constants.js` and `src/styles/letter.css` |
+| How pages are split | `src/letter/paginate.js` |
 | Colors and sizes offered | `src/editor/formatting.js` |
 | When the phone layout is used | `PHONE_QUERY` in `src/App.jsx` |
 
@@ -66,9 +71,9 @@ src/
   App.jsx               picks the phone or PC layout
   layouts/              MobileApp.jsx, DesktopApp.jsx
   editor/               rich-text editor (TipTap) and its toolbar
-  letter/               the letter page, scaling, PDF/image creation
+  letter/               the letter page, automatic pages, scaling, PDF/image creation
   export/               "making your PDF" overlay and the share sheet
-  components/           page tabs, details form, keyboard bar, icons
+  components/           details form, keyboard bar, icons
   state/                letter data + auto-save
   styles/               CSS
 public/                 letterhead, signatures, app icons

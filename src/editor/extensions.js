@@ -2,6 +2,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { Color, FontSize, TextStyle } from '@tiptap/extension-text-style';
 import { Placeholder } from '@tiptap/extensions';
 import { Fragment, Slice } from '@tiptap/pm/model';
+import { PageBreak } from './pageBreak.js';
 
 export const extensions = [
   StarterKit.configure({
@@ -17,6 +18,7 @@ export const extensions = [
   TextStyle,
   Color,
   FontSize,
+  PageBreak,
   Placeholder.configure({ placeholder: 'Type or paste your letter here…' }),
 ];
 

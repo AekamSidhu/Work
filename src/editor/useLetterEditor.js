@@ -2,9 +2,9 @@ import { useRef } from 'react';
 import { useEditor } from '@tiptap/react';
 import { clipboardTextParser, extensions, transformPastedHTML } from './extensions.js';
 
-// One rich-text editor for the page being edited. It is rebuilt when you switch
-// pages, so undo never jumps into another page's text.
-export function useLetterEditor({ page, onChange, onFocusChange, bottomSpace = 24 }) {
+// The rich-text editor for the whole letter. It is rebuilt only when a new
+// letter is started, so undo never brings back an old letter.
+export function useLetterEditor({ letter, onChange, onFocusChange, bottomSpace = 24 }) {
   const callbacks = useRef({ onChange, onFocusChange });
   callbacks.current = { onChange, onFocusChange };
 
@@ -13,7 +13,7 @@ export function useLetterEditor({ page, onChange, onFocusChange, bottomSpace = 2
   return useEditor(
     {
       extensions,
-      content: page.html || '',
+      content: letter.html || '',
       shouldRerenderOnTransaction: false,
       editorProps: {
         attributes: {
@@ -33,6 +33,6 @@ export function useLetterEditor({ page, onChange, onFocusChange, bottomSpace = 2
       onFocus: () => callbacks.current.onFocusChange?.(true),
       onBlur: () => callbacks.current.onFocusChange?.(false),
     },
-    [page.id],
+    [letter.id],
   );
 }

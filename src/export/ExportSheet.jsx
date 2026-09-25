@@ -77,7 +77,7 @@ export default function ExportSheet({ job, onClose }) {
           <div>
             <strong>{files[0].name}</strong>
             <span>
-              {job.pages.length} {job.pages.length === 1 ? 'page' : 'pages'} · {formatFileSize(totalSize)}
+              {job.layout.pages.length} {job.layout.pages.length === 1 ? 'page' : 'pages'} · {formatFileSize(totalSize)}
             </span>
           </div>
         </div>

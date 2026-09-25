@@ -1,20 +1,21 @@
 // Geometry of the letter, in "page pixels". The letterhead image (1024x1536)
-// is drawn at 680x1020, and everything is positioned on top of it exactly as
-// in the original index.html.
+// is drawn at 680x1020, and the text sits on top of it as in the original index.html.
 export const PAGE_WIDTH = 680;
 export const PAGE_HEIGHT = 1020;
 
 export const TEXT_TOP = 200;
-export const TEXT_MAX_HEIGHT = 620;
+// Nothing (text or signature) goes below this line; it keeps a margin above
+// the bottom of the letterhead's left-hand column.
+export const PAGE_BOTTOM = 975;
 
-// Body text starts at 16px and shrinks (down to 12px) until it fits.
+// Text starts at 16px and shrinks (down to 12px) to fit. If it still doesn't
+// fit, it carries on to a new page.
 export const BASE_FONT_SIZE = 16;
 export const MIN_FONT_SIZE = 12;
 
 export const SIGNATURE_WIDTH = 280;
 export const SIGNATURE_WIDTH_SMALL = 224; // used once the text has shrunk to the minimum size
-export const SIGNATURE_GAP = 10; // space between the body text and the signature
-export const SIGNATURE_BOTTOM_LIMIT = 70; // signature never goes closer than this to the page bottom
+export const SIGNATURE_GAP = 10; // space between the text and the signature
 
 export const LETTERHEAD_URL = '/letterhead.png';
 
@@ -32,3 +33,11 @@ export const ROLES = {
     lines: null,
   },
 };
+
+export function signatureWidth(fontSize) {
+  return fontSize <= MIN_FONT_SIZE ? SIGNATURE_WIDTH_SMALL : SIGNATURE_WIDTH;
+}
+
+export function signatureImageHeight(role, fontSize) {
+  return Math.round(signatureWidth(fontSize) * role.aspect);
+}

@@ -9,8 +9,6 @@
   --muted: #666b7a;
   --line: #e1e3eb;
   --danger: #c62828;
-  --warn-bg: #fff4e5;
-  --warn-ink: #8a4b00;
   --radius: 16px;
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
   --ui-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -301,55 +299,6 @@ input:focus-visible {
   transform: translateX(20px);
 }
 
-/* ---------- Page tabs ---------- */
-
-.page-tabs {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.page-tabs-list {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding: 2px;
-  margin: -2px;
-}
-
-.page-tabs-list::-webkit-scrollbar {
-  display: none;
-}
-
-.page-tab {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 40px;
-  padding: 0 14px;
-  border: 1.5px solid var(--line);
-  border-radius: 999px;
-  background: #fff;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.page-tab[aria-selected='true'] {
-  border-color: var(--brand);
-  background: var(--brand);
-  color: #fff;
-}
-
-.page-tab-add {
-  border-style: dashed;
-  color: var(--brand);
-}
-
 /* ---------- Preview ---------- */
 
 .paper {
@@ -359,40 +308,15 @@ input:focus-visible {
   overflow: hidden;
 }
 
+.preview-item {
+  display: grid;
+  gap: 8px;
+}
+
 .preview-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  margin-bottom: 8px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ink);
-  text-align: left;
-}
-
-.preview-label em {
-  font-style: normal;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--brand);
-}
-
-.preview-label em.muted {
-  color: var(--muted);
-}
-
-.warning {
-  margin-bottom: 8px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: var(--warn-bg);
-  color: var(--warn-ink);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--muted);
 }
 
 .app-foot {
